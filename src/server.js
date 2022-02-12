@@ -1,6 +1,7 @@
 const express = require('express');
 const fileUpload = require('express-fileupload');
 const cors = require('cors');
+const { createServer } = require('http');
 
 const {
   APP_PORT,
@@ -9,12 +10,15 @@ const {
   RELATIVE_API_PATH
 } = require('./config/app');
 const { connectDB } = require('./database/configMongoDB');
+const { socketController } = require('./sockets/SocketController');
 
 class Server {
 
   constructor() {
     this.app = express();
     this.port = APP_PORT;
+    this.server = createServer(this.app);
+    this.io = require('socket.io')(this.server);
 
     this.paths = {
       auth: this.getPath('/auth'),
@@ -28,6 +32,7 @@ class Server {
     this.connectDB();
     this.middlewares();
     this.routes();
+    this.sockets();
   }
 
   async connectDB() {
@@ -58,8 +63,12 @@ class Server {
     });
   }
 
+  sockets() {
+    this.io.on('connection', (socket) => socketController(socket, this.io));
+  }
+
   listen() {
-    this.app.listen(this.port, () => {
+    this.server.listen(this.port, () => {
       console.log('');
       console.log('############################');
       console.log('###### SERVER RUNNING ######');

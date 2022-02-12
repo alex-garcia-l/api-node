@@ -36,7 +36,7 @@ const login = async (req, res = response) => {
 
     res.json({
       user,
-      tokenType: 'bearer',
+      tokenType: 'Bearer',
       accessToken: token,
     });
 
@@ -49,12 +49,12 @@ const login = async (req, res = response) => {
 }
 
 const loginGoogle = async (req, res) => {
-  
+
   const { idToken } = req.body;
 
   try {
     const { name, image, email } = await googleVerify(idToken);
-    
+
     let user = await User.findOne({ email });
 
     if (!user) {
@@ -78,10 +78,10 @@ const loginGoogle = async (req, res) => {
     }
 
     const token = await generateToken(user.id);
-    
+
     res.json({
       user,
-      tokenType: 'bearer',
+      tokenType: 'Bearer',
       accessToken: token,
     });
   } catch (error) {
@@ -91,7 +91,20 @@ const loginGoogle = async (req, res) => {
   }
 }
 
+const renovateToken = async (req, res) => {
+  const user = req.userLogged;
+
+  const token = await generateToken(user.id);
+
+  res.json({
+    user,
+    tokenType: 'Bearer',
+    accessToken: token,
+  });
+}
+
 module.exports = {
   login,
-  loginGoogle
+  loginGoogle,
+  renovateToken
 }
